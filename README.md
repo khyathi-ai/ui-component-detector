@@ -1,142 +1,140 @@
-UI Component Detector
-Overview
+# UI Component Detector
 
-This project implements an AI-driven system that analyzes UI screenshots and identifies common UI components such as navigation bars, buttons, input fields, containers, and other meaningful UI structures.
+## Overview
+
+This project implements an AI-driven system that analyzes UI screenshots and identifies common UI components such as:
+
+- Navigation bars
+- Buttons
+- Input fields
+- Cards / containers
+- Other meaningful UI structures
+
 The system exposes a backend API for detection and includes an optional lightweight frontend to upload images and visualize detected components with bounding boxes.
 
-The primary goal of this project is to demonstrate architecture design, reasoning, and practical trade-offs when building an intelligent UI analysis system under real-world constraints.
+**Goal:**  
+To demonstrate architecture design, reasoning, and practical trade-offs when building an intelligent UI analysis system under real-world constraints.
 
-Architecture Overview
+---
 
-The system follows a multi-step computer vision processing pipeline:
+## Architecture Overview
 
-Input Handling
+The system is implemented as a **multi-step computer vision pipeline**:
 
-Accepts UI screenshots via base64 string or image URL
+### 1. Input Handling
+- Accepts UI screenshots as:
+  - Base64 strings
+  - Image URLs
+- Decodes images into an OpenCV-compatible format
 
-Decodes image into OpenCV-compatible format
+### 2. Preprocessing
+- Adds a small border around images to avoid edge-clipping issues
+- Converts images to grayscale
+- Applies edge detection to highlight UI boundaries
 
-Preprocessing
+### 3. Region Extraction
+- Uses contour detection to identify visual regions
+- Extracts bounding boxes for candidate UI elements
+- Filters out very small or noisy regions
 
-Adds a small border around the image to avoid edge-clipping issues
+### 4. Heuristic Classification
+- Classifies each region using layout-based heuristics
+- Uses relative size and position to infer UI component types
 
-Converts image to grayscale
+### 5. Post-processing
+- Applies class-aware and containment-aware Non-Maximum Suppression (NMS)
+- Removes duplicate detections while preserving UI hierarchy
 
-Applies edge detection to highlight UI boundaries
-
-Region Extraction
-
-Uses contour detection to identify visual regions
-
-Extracts bounding boxes for candidate UI elements
-
-Filters out very small/noisy regions
-
-Heuristic Classification
-
-Classifies each region using layout-based heuristics
-
-Uses relative size and position to infer UI component types
-
-Post-processing
-
-Applies class-aware and containment-aware Non-Maximum Suppression (NMS)
-
-Removes duplicate detections while preserving UI hierarchy
-
-Output
-
-Returns structured JSON with component type, description, confidence score, and normalized bounding box coordinates
+### 6. Output
+- Returns structured JSON with:
+  - Component type
+  - Description
+  - Confidence score
+  - Normalized bounding box coordinates
 
 An optional frontend is provided for interactive visualization.
 
-Why This Approach Was Chosen
+---
 
-Given the 48-hour timeline and the requirement for consistent, explainable bounding boxes, a deterministic computer-vision-based approach was chosen over training or integrating large ML models.
+## Why This Approach Was Chosen
+
+Given the **48-hour timeline** and the need for **consistent, explainable bounding boxes**, a deterministic computer-vision-based approach was chosen over training or integrating large ML models.
 
 This approach provides:
 
-Predictable and reproducible outputs
+- Predictable and reproducible outputs
+- No dependency on external APIs or paid services
+- Full control over detection behavior
+- Clear explainability of decisions
 
-No dependency on external APIs or paid services
+The focus was on building a **reliable baseline system**, not a black-box semantic classifier.
 
-Full control over detection behavior
+---
 
-Clear explainability of decisions
+## Technical Decisions & Trade-offs
 
-The focus was on building a reliable baseline system rather than a black-box semantic classifier.
+### Key Decisions
+- Used classical computer vision techniques (OpenCV) instead of deep learning
+- Implemented heuristic-based classification using geometry and layout rules
+- Added class-aware NMS to reduce duplicate detections
+- Built a minimal frontend for visualization instead of a full UI application
 
-Technical Decisions & Trade-offs
-Decisions
+### Trade-offs
+- Higher consistency and explainability
+- Lower semantic accuracy compared to trained ML models
+- UI components inferred by layout rather than true semantic understanding
 
-Used classical computer vision techniques (OpenCV) instead of deep learning
+These trade-offs were intentional.
 
-Implemented heuristic-based classification using geometry and layout rules
+---
 
-Added class-aware NMS to reduce duplicate detections
-
-Built a minimal frontend for visualization instead of a full UI application
-
-Trade-offs
-
-Higher consistency and explainability
-
-Lower semantic accuracy compared to trained ML models
-
-UI components are inferred by layout rather than true semantic understanding
-
-These trade-offs were intentional to ensure robustness and clarity.
-
-Model Selection Reasoning
+## Model Selection Reasoning
 
 No pre-trained or custom-trained ML models were used in this version.
 
 Instead, the system relies on:
-
-Classical image processing
-
-Rule-based semantic inference
-
-Multi-step processing pipeline
+- Classical image processing
+- Rule-based semantic inference
+- A multi-step processing pipeline
 
 This was chosen because:
+- Training UI-specific models requires labeled datasets and more time
+- Vision-language models introduce variability and cost
+- Heuristics guarantee stable and deterministic bounding boxes
 
-Training a UI-specific model requires labeled datasets and more time
+---
 
-Vision-language models introduce variability and cost
+## Setup & Installation Instructions
 
-Heuristics guarantee stable bounding boxes and deterministic behavior
+### Prerequisites
+- Python 3.9+
+- Virtual environment recommended
 
-Setup & Installation Instructions
-Prerequisites
+### Installation
 
-Python 3.9+
-
-Virtual environment recommended
-
-Installation
+-----bash--------
 git clone <repository-url>
 cd ui-component-detector
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-
 Run the Server
 uvicorn app.main:app --reload
 
-Access Frontend (Optional)
+### Access Frontend (Optional)
 http://127.0.0.1:8000/ui
 
-API Usage Instructions
-Endpoint
+### API Usage Instructions
+# Endpoint
+
 POST /detect-ui-elements
 
-Input
+Request Body
 {
   "image": "<base64-string OR image-url>"
 }
 
-Output
+# Response Example
 {
   "elements": [
     {
@@ -156,43 +154,44 @@ Output
 
 Bounding box values are normalized relative to image dimensions.
 
-Limitations
+### Limitations
 
-Classification is based on visual layout, not semantic understanding
+-Classification is based on visual layout, not semantic understanding
 
-Photo-heavy or highly unconventional UI designs may produce noisy detections
+-Photo-heavy or unconventional UI designs may produce noisy detections
 
-Overlapping detections may still occur in complex layouts
+-Overlapping detections may still occur in complex layouts
 
-Components such as sliders or switches are inferred heuristically and may be misclassified
+-Components such as sliders or switches are inferred heuristically
 
 These limitations are inherent to geometry-based approaches.
 
-What I Would Improve With More Time
+### What I Would Improve With More Time
 
-Integrate a UI-trained object detection model (e.g., RICO or UIED)
+-Integrate a UI-trained object detection model (e.g., RICO or UIED)
 
-Add OCR to improve text-aware classification
+-Add OCR to improve text-aware classification
 
-Introduce hierarchical grouping of UI components
+-Introduce hierarchical grouping of UI components
 
-Combine classical CV with vision-language models for semantic labeling
+-Combine classical CV with vision-language models for semantic labeling
 
-Add confidence calibration and evaluation metrics
+-Add confidence calibration and evaluation metrics
 
-Deploy the system for public demo with cloud hosting
+-Deploy the system as a public demo
 
-Samples
+### Samples
 
 The repository includes:
 
-3–5 UI screenshots used for testing
+-3–5 UI screenshots used for testing
 
-Corresponding JSON outputs generated by the system
+-Corresponding JSON outputs generated by the system
 
-One visual overlay image demonstrating bounding box visualization
+-Visual overlay images demonstrating bounding box visualization
 
-Final Notes
+### Final Notes
 
 This project demonstrates a practical, explainable, and extensible baseline for UI component detection.
-The architecture is intentionally designed to be modular, allowing future integration of learned models without changing the API contract.
+
+The architecture is intentionally modular and can be extended with learned models without changing the API contract.
