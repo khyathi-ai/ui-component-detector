@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>UI Component Detector</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    canvas { border: 1px solid #ccc; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<h2>UI Component Detector</h2>
+
+<input type="file" id="fileInput" accept="image/*" />
+<button onclick="detect()">Detect UI Components</button>
+
+<br><br>
+<canvas id="canvas"></canvas>
+
+<script>
+const PADDING = 40; // px space around the image
+
+async function detect() {
+  const file = document.getElementById("fileInput").files[0];
+  if (!file) {
+    alert("Please select an image");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async function () {
+    const base64Image = reader.result.split(",")[1];
+
+    const response = await fetch("/detect-ui-elements", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: base64Image })
+    });
+
+    const data = await response.json();
+
+    drawResult(file, data.elements);
+  };
+
+  reader.readAsDataURL(file);
+}
+
+function drawResult(file, elements) {
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  const img = new Image();
+  img.onload = () => {
+    // Make canvas larger than image
+    canvas.width = img.width + PADDING * 2;
+    canvas.height = img.height + PADDING * 2;
+
+    // Background (outer border area)
+    ctx.fillStyle = "#eeeeee"; // light gray
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw image inside padding
+    ctx.drawImage(img, PADDING, PADDING);
+
+    // Draw a bold border around the image
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(PADDING, PADDING, img.width, img.height);
+
+    // Draw bounding boxes
+    ctx.strokeStyle = "green";
+    ctx.lineWidth = 2;
+    ctx.font = "14px Arial";
+    ctx.fillStyle = "green";
+
+    elements.forEach(el => {
+      const x = PADDING + el.bounds.x * img.width;
+      const y = PADDING + el.bounds.y * img.height;
+      const w = el.bounds.w * img.width;
+      const h = el.bounds.h * img.height;
+
+      ctx.strokeRect(x, y, w, h);
+      ctx.fillText(`${el.type} (${el.confidence})`, x, y - 6);
+    });
+  };
+
+  img.src = URL.createObjectURL(file);
+}
+
+</script>
+
+</body>
+</html>
