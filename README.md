@@ -118,23 +118,24 @@ cd ui-component-detector
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-Run the Server
+
+### Run the Server
 uvicorn app.main:app --reload
 
 ### Access Frontend (Optional)
 http://127.0.0.1:8000/ui
 
-### API Usage Instructions
-# Endpoint
+## API Usage Instructions
+### Endpoint
 
 POST /detect-ui-elements
 
-Request Body
+### Request Body
 {
   "image": "<base64-string OR image-url>"
 }
 
-# Response Example
+### Response Example
 {
   "elements": [
     {
@@ -154,7 +155,7 @@ Request Body
 
 Bounding box values are normalized relative to image dimensions.
 
-# Limitations
+## Limitations
 
 -Classification is based on visual layout, not semantic understanding
 
@@ -166,7 +167,7 @@ Bounding box values are normalized relative to image dimensions.
 
 These limitations are inherent to geometry-based approaches.
 
-# What I Would Improve With More Time
+## What I Would Improve With More Time
 
 -Integrate a UI-trained object detection model (e.g., RICO or UIED)
 
@@ -180,7 +181,7 @@ These limitations are inherent to geometry-based approaches.
 
 -Deploy the system as a public demo
 
-# Samples
+## Samples
 
 The repository includes:
 
@@ -190,7 +191,7 @@ The repository includes:
 
 -Visual overlay images demonstrating bounding box visualization
 
-# Final Notes
+## Final Notes
 
 This project demonstrates a practical, explainable, and extensible baseline for UI component detection.
 
